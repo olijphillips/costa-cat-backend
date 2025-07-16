@@ -25,9 +25,11 @@ const upload = multer({
   limits: { fileSize: parseInt(process.env.MAX_FILE_SIZE) || 10 * 1024 * 1024 } // 10MB limit
 });
 
-// Create uploads directory if it doesn't exist
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+// Create uploads directory if it doesn't exist (only in non-production)
+if (process.env.NODE_ENV !== 'production') {
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
 }
 
 // Initialize SQLite database
@@ -35,6 +37,17 @@ const dbPath = process.env.DATABASE_URL || './costa_cat_kpis.db';
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database:', err.message);
+    console.log('Falling back to in-memory database...');
+    // Fallback to in-memory database for deployment environments
+    const memDb = new sqlite3.Database(':memory:', (memErr) => {
+      if (memErr) {
+        console.error('Error creating in-memory database:', memErr.message);
+      } else {
+        console.log('Connected to in-memory SQLite database');
+        initializeDatabase();
+      }
+    });
+    return;
   } else {
     console.log('Connected to SQLite database at:', dbPath);
     initializeDatabase();
