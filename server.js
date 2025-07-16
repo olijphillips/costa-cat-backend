@@ -306,6 +306,23 @@ app.get('/api/uploads/history', (req, res) => {
   });
 });
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    message: '🏖️ Costa Cat Dashboard API',
+    version: '1.0.0',
+    status: 'online',
+    endpoints: {
+      health: '/api/health',
+      latestKPIs: '/api/kpis/latest',
+      history: '/api/kpis/history',
+      upload: '/api/upload',
+      uploadHistory: '/api/uploads/history'
+    },
+    frontend: process.env.FRONTEND_URL || 'http://localhost:5173'
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ 
